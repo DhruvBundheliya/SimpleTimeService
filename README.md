@@ -26,7 +26,7 @@ This repository contains:
 {"timestamp": "2025-04-14T10:22:33.123Z","ip": "203.0.113.1"}
 ```
 
-🐳 Running the App Locally
+🏠Running the App Locally
 ```bash
 cd app/
 python3 -m venv venv
@@ -41,9 +41,17 @@ You should now see output like:
 ```
 Visit http://localhost:5000 in your browser to test it!
 
-Running on Docker
+🐳Running on Docker
 ```bash
 docker build -t simple-time-service .
 docker run -p 5000:5000 simple-time-service
 ```
 Visit http://localhost:5000 in your browser to test it!
+
+## 🐳Pushing Docker image to DockerHub
+
+```bash
+docker login
+docker tag simple-time-service:latest dhruvusername/simpletimeservice:latest
+docker push dhruvbundheliya/simpletimeservice:latest
+```
