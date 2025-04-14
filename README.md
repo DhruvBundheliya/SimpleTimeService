@@ -48,7 +48,7 @@ docker run -p 5000:5000 simple-time-service
 ```
 Visit http://localhost:5000 in your browser to test it!
 
-## 🐳Pushing Docker image to DockerHub
+## 🐳 Pushing Docker image to DockerHub
 
 ```bash
 docker login
