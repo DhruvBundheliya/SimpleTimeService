@@ -10,8 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py ./
 
-RUN apt-get update && apt-get install curl -y
-
 USER appuser
 
 EXPOSE 5000
