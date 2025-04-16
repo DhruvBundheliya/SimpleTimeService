@@ -171,3 +171,27 @@ terraform/vpc/tfvars/stage.tfvars
 terraform/loadbalancer/tfvars/prod.tfvars
 terraform/ecs/tfvars/stage.tfvars
 ```
+
+## ⚙️ CI/CD with GitHub Actions
+
+This project includes a **fully automated CI/CD pipeline** defined in `.github/workflows/deploy.yml`.
+
+### 🔄 Pipeline Overview
+
+- **Trigger**: On push to `main` or manual trigger via GitHub UI
+- **Steps**:
+    1. **Checkout** the repository
+    2. **Build & Push** Docker image to DockerHub with the current commit SHA as the tag
+    3. **Run Terraform** to deploy ECS with the new image
+
+✅ This pipeline ensures every new push to main automatically builds, pushes, and deploys your app to ECS Fargate with the latest changes.
+
+## ✅ Completion
+
+This project demonstrates end-to-end DevOps skills including:
+•	Containerization with Docker
+•	Infrastructure as Code using Terraform
+•	AWS Cloud services: VPC, ALB, ECS Fargate
+•	CI/CD automation with GitHub Actions
+
+🎯 This can push code and deploy app with zero manual steps!

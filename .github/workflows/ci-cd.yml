@@ -24,3 +24,13 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/simpletimeservice:${{ github.sha }} ./app
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/simpletimeservice:${{ github.sha }}
+
+      - name: Deploy ECS with Terraform
+        working-directory: ./terraform/ecs
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform init -backend-config=../../simpletimeservice.hcl
+          terraform plan -var "docker_image=${{ secrets.DOCKERHUB_USERNAME }}/simpletimeservice:${{ github.sha }}" -var-file=tfvars/dev.tfvars
+          terraform apply -auto-approve -var "docker_image=${{ secrets.DOCKERHUB_USERNAME }}/simpletimeservice:${{ github.sha }}" -var-file=tfvars/dev.tfvars
