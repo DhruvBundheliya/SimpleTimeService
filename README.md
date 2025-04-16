@@ -55,3 +55,119 @@ docker login
 docker tag simple-time-service:latest dhruvusername/simpletimeservice:latest
 docker push dhruvbundheliya/simpletimeservice:latest
 ```
+## 📦 Terraform Infrastructure
+
+This repository provisions infrastructure for a minimalist Flask app called SimpleTimeService using Terraform with remote state management. It follows a clear modular structure and supports multiple environments (e.g., dev, stage, prod) via .tfvars.
+
+```aiignore
+terraform/
+├── vpc/                   # VPC creation (public/private subnets, NAT, etc.)
+│   ├── tfvars/
+│   │   └── dev.tfvars     # Dev environment-specific input values
+│   ├── main.tf            # Module config for VPC
+│   ├── outputs.tf
+│   ├── provider.tf
+│   └── variables.tf
+├── loadbalancer/          # Application Load Balancer & Security Groups
+│   ├── tfvars/
+│   │   └── dev.tfvars
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── provider.tf
+│   └── variables.tf
+├── ecs/                   # ECS Cluster, Task Definition, Service
+│   ├── tfvars/
+│   │   └── dev.tfvars
+│   ├── main.tf
+│   ├── outputs.tf
+│   ├── provider.tf
+│   └── variables.tf
+├── simpletimeservice.hcl  # CLI config for remote backend initialization
+```
+
+## ☁️ Remote Backend Configuration
+
+Your state is stored in Amazon S3 and locked in DynamoDB using the .hcl file
+
+✅ simpletimeservice.hcl
+```aiignore
+bucket = ""
+region = ""
+dynamodb_table = ""
+```
+
+Make sure you provide the Bucket and Region values.
+
+## 🚀 Deployment Flow (in order)
+
+### 🧱 1. Deploy VPC
+
+```aiignore
+cd terraform/vpc
+terraform init -backend-config=../../simpletimeservice.hcl
+terraform plan -var-file=tfvars/dev.tfvars
+terraform apply -var-file=tfvars/dev.tfvars
+```
+
+### 🌐 2. Deploy Load Balancer (reads VPC remote state)
+
+Update main.tf in loadbalancer/ to read remote state:
+
+```aiignore
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    bucket = ""
+    key    = ""
+    region = ""
+  }
+}
+```
+Then deploy:
+```aiignore
+cd terraform/loadbalancer
+terraform init -backend-config=../../simpletimeservice.hcl
+terraform plan -var-file=tfvars/dev.tfvars
+terraform apply -var-file=tfvars/dev.tfvars
+```
+
+### ⚙️ 3. Deploy ECS Cluster, Service & Task Definition
+
+Update main.tf in ecs/ to reference both:
+
+```aiignore
+data "terraform_remote_state" "vpc" {
+  backend = "s3"
+  config = {
+    bucket               = ""
+    key                  = "vpc/vpc.tfstate"
+    region               = ""
+  }
+}
+
+data "terraform_remote_state" "aws_security_group" {
+  backend = "s3"
+  config = {
+    bucket               = ""
+    key                  = "alb/alb.tfstate"
+    region               = ""
+  }
+}
+```
+Then deploy:
+```aiignore
+cd terraform/ecs
+terraform init -backend-config=../../simpletimeservice.hcl
+terraform plan -var-file=tfvars/dev.tfvars
+terraform apply -var-file=tfvars/dev.tfvars
+```
+
+### 🎯 Environment Support
+
+Each module reads variables from tfvars/dev.tfvars. To support multiple environments, simply duplicate and rename the .tfvars files:
+
+```aiignore
+terraform/vpc/tfvars/stage.tfvars
+terraform/loadbalancer/tfvars/prod.tfvars
+terraform/ecs/tfvars/stage.tfvars
+```
